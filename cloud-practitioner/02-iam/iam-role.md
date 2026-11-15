@@ -1,50 +1,13 @@
-# AWS IAM Roles — Theory & Hands-on Lab
+# IAM Role
 
-## 1. Learning objectives
+- Some AWS service will need to perform actions on your behalf. To do so, we will assign permissions to AWS services with IAM Roles.
+- Common roles:
+  EC2 Instance Roles
+  Lambda Function Roles
+  Roles for CloudFormation
+- IAM Role provides temporary credentials instead of long-term credentials.
 
-- Understand why AWS services use IAM roles.
-- Distinguish IAM users, roles, trust policies, and permissions policies.
-- Create an EC2 service role and inspect it using AWS CLI.
-- Attach and detach a managed policy, verify the result, and clean up.
-- Avoid launching billable compute resources during this lab.
-
-## 2. IAM Roles: theory
-
-An IAM role is an AWS identity with permissions that trusted principals can assume. Roles are commonly used to provide temporary credentials to workloads without embedding long-term access keys in source code.
-
-Common examples:
-
-| Role                        | Example purpose                                                                 |
-| --------------------------- | ------------------------------------------------------------------------------- |
-| EC2 instance role           | Let applications on EC2 call AWS APIs.                                          |
-| Lambda execution role       | Let a Lambda function access required AWS services and write logs.              |
-| CloudFormation service role | Let CloudFormation manage resources using the permissions assigned to the role. |
-
-### Trust policy versus permissions policy
-
-- **Trust policy:** Who can assume the role? For this lab, the trusted principal is `ec2.amazonaws.com`.
-- **Permissions policy:** Which actions can the role perform, and on which resources?
-
-Example EC2 trust policy:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": { "Service": "ec2.amazonaws.com" },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-```
-
-When an EC2 instance uses an instance profile associated with an IAM role, applications can obtain temporary role credentials through the EC2 credential provider chain. Do not hard-code access keys. Grant only the actions and resources required by the workload (least privilege).
-
-> `AmazonS3ReadOnlyAccess` is a broad AWS-managed policy. It was used only to inspect attachment and detachment in this lab. For a real workload, prefer a narrowly scoped policy for the specific bucket and actions required.
-
-## 3. Lab: EC2-S3-ReadOnly-Lab (IAM configuration only)
+## Handon
 
 **Cost-conscious scope:** Created and managed an IAM role only. No EC2 instance or S3 bucket was created for this lab. IAM role/policy management itself has no additional charge, but unrelated resources in the AWS account may still incur charges.
 

@@ -1,54 +1,35 @@
-# Amazon EBS Snapshots — Theory & Hands-on
+# EBS Snapshot
 
-> **Learning path:** AWS Certified Cloud Practitioner (CLF-C02)  
-> **Lab status:** Completed — backup and restore verified  
-> **AWS Region:** Asia Pacific (Sydney), `ap-southeast-2`  
-> **EC2 instance:** `MyEc2Instance` (`t3.micro`, Amazon Linux, AZ `ap-southeast-2a`)
+- Make a backup ( snapshot ) of your EBS volume at a point in time
+- Not necessary to detach volume to do snapshot, but recommended
+- Can copy snapshots across AZ or Region
 
-## 1. Objectives
+## 1. EBS Snapshots Features
 
-- Understand Amazon EBS Snapshots and how they differ from EBS volumes.
-- Create a point-in-time backup of a data volume using the AWS Management Console.
-- Restore a new EBS volume from the snapshot and verify the original data.
-- Safely clean up lab resources and understand Recycle Bin retention.
+### EBS Snapshot Archive
 
-## 2. CLF-C02 Theory
+- Move a Snapshot to an ""archive tier"" that is 75% cheaper
+  Takes within 24 to 72 hours for restoring the archive
 
-### What is an EBS Snapshot?
+### Recycle Bin for EBS Snapshots
 
-An **Amazon Elastic Block Store (EBS) Snapshot** is a **point-in-time backup** of an EBS volume. Snapshots are stored and managed by AWS and can be used to create new EBS volumes.
+- Setup rules to retain deleted snapshots so you can recover them after an accidental deletion
+- Specify retention ( from 1 day to 1 year )
 
-| Concept               | Key point                                                                                                               |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Point-in-time backup  | Captures the volume's data at a particular point in time.                                                               |
-| Incremental snapshots | After the initial snapshot, only changed blocks need to be saved; AWS manages the snapshot dependencies.                |
-| Regional resource     | EBS snapshots are scoped to an AWS Region, not a single Availability Zone.                                              |
-| Restore               | Create a **new EBS volume** from a snapshot; choose a supported AZ in the snapshot's Region.                            |
-| Cross-Region copy     | Copy a snapshot to another AWS Region for recovery or migration.                                                        |
-| Snapshot Archive      | Lower-cost tier for long-term retention; minimum storage billing period is **90 days**.                                 |
-| Archive restore       | Standard retrieval commonly takes **24–72 hours**; expedited retrieval may be available for eligible snapshots.         |
-| Recycle Bin           | Retention rules can preserve deleted snapshots for **1–365 days** so they can be recovered during the retention period. |
-
-**Important distinctions:**
-
-- **EBS volume:** Block storage attached to an EC2 instance in the **same AZ**.
-- **EBS snapshot:** Backup scoped to a **Region**; can be used to create volumes in different AZs within that Region.
-- Deleting a volume does **not** automatically delete its snapshots.
-- Removing a Recycle Bin retention rule does **not** immediately purge resources already retained under that rule.
-- Snapshots and retained resources may incur storage charges.
-
-## 3. Lab Architecture
+## 2. Hands-on
 
 ```text
+
 AWS Region: ap-southeast-2 (Sydney)
 └── Availability Zone: ap-southeast-2a
-    └── EC2: MyEc2Instance
-        ├── Root EBS (8 GiB) -> /dev/nvme0n1 -> /
-        ├── Original EBS (1 GiB, gp3) -> /dev/nvme1n1 -> /data
-        │   └── snapshot-test.txt
-        └── Restored EBS (1 GiB, gp3) -> /dev/nvme2n1 -> /data-restored
+└── EC2: MyEc2Instance
+├── Root EBS (8 GiB) -> /dev/nvme0n1 -> /
+├── Original EBS (1 GiB, gp3) -> /dev/nvme1n1 -> /data
+│ └── snapshot-test.txt
+└── Restored EBS (1 GiB, gp3) -> /dev/nvme2n1 -> /data-restored
 
 Original EBS -> EBS Snapshot (Standard) -> Restored EBS
+
 ```
 
 ### Lab resources
@@ -62,8 +43,6 @@ Original EBS -> EBS Snapshot (Standard) -> Restored EBS
 | Snapshot             | `ebs-snapshot-lab-backup`                         | Created from original data volume; later deleted into Recycle Bin |
 
 > **Safety:** EC2 NVMe device names can change between instances or reattachments. Always verify the EBS Volume ID before formatting or mounting a device.
-
-## 4. Hands-on: Backup and Restore
 
 ### Step 1 — Select the correct Region and EC2
 
@@ -251,36 +230,3 @@ In **EC2 → Snapshots**, delete `ebs-snapshot-lab-backup`.
 **Follow-up:** After the 1-day retention period expires, check **EC2 → Recycle Bin → Resources** in `ap-southeast-2` to confirm the snapshot is gone.
 
 > **Existing EC2:** `MyEc2Instance` was intentionally preserved. Its ongoing instance/root-volume charges, if any, are separate from this lab. Review its state and billing as appropriate; do not terminate shared lab resources without checking.
-
-## 6. Lessons Learned
-
-1. EBS volumes are **AZ-scoped**, while EBS snapshots are **Region-scoped**.
-2. Snapshots enable backup and restoration by creating **new EBS volumes**.
-3. Restored volumes preserve filesystem data; formatting them would destroy that restored data.
-4. NVMe Linux device names are not a reliable substitute for verifying EBS Volume IDs.
-5. XFS copies may share filesystem UUIDs; `mount -o ro,nouuid` is useful when comparing original and restored volumes on the same instance.
-6. Deleting EBS volumes does not delete existing snapshots.
-7. A deleted snapshot may still be retained in **Recycle Bin** until its retention expires, even if the retention rule is later deleted.
-8. Cleaning up temporary volumes and snapshots helps avoid unnecessary AWS charges.
-
-## 7. Completion Checklist
-
-- [x] Create and attach original gp3 EBS volume
-- [x] Identify the correct Linux NVMe device
-- [x] Format original volume as XFS and mount it
-- [x] Write and verify sample data
-- [x] Create a Standard EBS Snapshot
-- [x] Restore a new EBS volume from the snapshot
-- [x] Mount restored volume read-only using `nouuid`
-- [x] Verify restored file contents
-- [x] Unmount and detach both lab volumes
-- [x] Delete both lab volumes
-- [x] Delete snapshot from active Snapshots list
-- [x] Confirm snapshot is retained in Recycle Bin for 1 day
-- [x] Delete the retention rule
-- [x] Verify snapshot has expired and disappeared from Recycle Bin
-- [x] Preserve existing EC2 instance and root volume
-
----
-
-**Outcome:** Successfully demonstrated EBS Snapshot backup and restore through AWS Console and Linux hands-on commands, with verified data recovery and documented cleanup status.

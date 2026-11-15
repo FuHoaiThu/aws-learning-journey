@@ -1,53 +1,37 @@
-# Amazon Machine Image (AMI) — Theory & Hands-on
+# AMI (Amazon Machine Image)
 
-## 1. Learning objectives
+- AMI are a customization of an EC2 instance
+  You add your own software, configuration, operating system, monitoring, ...
+  Faster boot / configuration time because all your software is pre-packaged
+- AMI are built for a specific region ( and can be copied across regions )
+- You can launch EC2 instances from:
+  A public AMI: AWS provided
+  Your own AMI: you make and maintain them yourself
+  An AWS Marketplace AMI: an AMI someone else made ( and potentially sells )
 
-- Understand what an Amazon Machine Image (AMI) is.
-- Distinguish AMIs from EBS snapshots and EC2 User Data.
-- Create a custom AMI from an existing Amazon Linux EC2 instance.
-- Launch a new EC2 instance from the AMI and verify that software, configuration, and files are preserved.
-- Clean up lab resources to reduce unnecessary charges.
+## AMI Process
 
-## 2. AMI fundamentals
+- Start an EC2 instance and customize it
+- Stop the instance ( for data integrity )
+- Build an AMI - this will also create EBS snapshots
+- Launch instances from other AMIs"
 
-An **Amazon Machine Image (AMI)** is a template used to launch Amazon EC2 instances. It includes the information required to boot an instance, such as an operating system, software and configuration stored on included volumes, and block device mappings.
+## Hands-on
 
-### Common AMI sources
+### Lab environment
 
-- **AWS-provided AMIs** — for example, Amazon Linux.
-- **Custom AMIs** — created from an instance configured for a particular workload.
-- **AWS Marketplace AMIs** — images offered by third-party publishers.
-
-### AMI versus EBS Snapshot versus EC2 User Data
-
-| Feature | Purpose |
-| --- | --- |
-| AMI | Template for launching EC2 instances with a prepared environment. |
-| EBS Snapshot | Point-in-time backup of an EBS volume, used to create new volumes and to back EBS-based AMIs. |
-| EC2 User Data | Bootstrapping instructions supplied to an EC2 instance, commonly processed by cloud-init on launch. |
-
-**Important:** Creating a new instance from an AMI does **not** automatically copy the original instance's **User Data attribute**. However, files and software created by earlier User Data scripts may be present in the AMI if stored on included EBS volumes. Cloud-init state or caches may also exist on the image; this is distinct from copying the User Data attribute.
-
-### Regional scope
-
-AMIs are regional resources. An AMI can be copied to another AWS Region when needed.
-
-## 3. Lab environment
-
-| Resource | Value |
-| --- | --- |
-| AWS Region | `ap-southeast-2` (Sydney) |
-| Original EC2 instance | `MyEc2Instance` |
-| Operating system | Amazon Linux |
-| Original web server | Apache (`httpd`), port `80` |
-| Additional web server | Nginx, port `8080` |
-| Custom AMI name | `custom-nginx-ami-lab` |
-| Test EC2 instance | `EC2-From-Custom-AMI` |
-| Test security group | `custom-ami-lab-sg` |
+| Resource              | Value                       |
+| --------------------- | --------------------------- |
+| AWS Region            | `ap-southeast-2` (Sydney)   |
+| Original EC2 instance | `MyEc2Instance`             |
+| Operating system      | Amazon Linux                |
+| Original web server   | Apache (`httpd`), port `80` |
+| Additional web server | Nginx, port `8080`          |
+| Custom AMI name       | `custom-nginx-ami-lab`      |
+| Test EC2 instance     | `EC2-From-Custom-AMI`       |
+| Test security group   | `custom-ami-lab-sg`         |
 
 > The original EC2 instance was reused from previous labs. Do not terminate it as part of this lab.
-
-## 4. Hands-on steps
 
 ### Step 1 — Verify the source instance
 
